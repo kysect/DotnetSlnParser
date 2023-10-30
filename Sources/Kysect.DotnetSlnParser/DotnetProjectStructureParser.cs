@@ -20,14 +20,14 @@ public class DotnetProjectStructureParser
         _logger = logger.ThrowIfNull();
     }
 
-    public DotnetProjectFileContent ReadAndParse(string path)
+    public DotnetProjectFileContent? ReadAndParse(string path)
     {
         _logger.LogInformation("Parsing project structure for {path}", path);
         string csprojContent = _fileSystem.File.ReadAllText(path);
         return ParseContent(csprojContent);
     }
 
-    public DotnetProjectFileContent ParseContent(string csprojContent)
+    public DotnetProjectFileContent? ParseContent(string csprojContent)
     {
         var sources = new List<string>();
         var references = new List<string>();
@@ -40,7 +40,10 @@ public class DotnetProjectStructureParser
             throw new ArgumentException($"Cannot load xml, document element collection is null.");
 
         if (IsLegacyXmlFormat(projectNode))
-            throw new DotnetSlnParseException("Legacy xml format is not supported");
+        {
+            _logger.LogWarning("Legacy xml format is not supported");
+            return null;
+        }
 
         bool enableDefaultItems = IsEnableDefaultItems(projectNode);
         string? targetFramework = FindTargetFramework(projectNode);

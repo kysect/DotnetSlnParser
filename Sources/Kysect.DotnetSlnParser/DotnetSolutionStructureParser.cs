@@ -51,8 +51,9 @@ public class DotnetSolutionStructureParser
             string projectFullPath = _fileSystem.Path.Combine(solutionDirectory.FullName, projectFileDescriptor.ProjectPath);
 
             _logger.LogTrace("Parsing project {path}", projectFullPath);
-            DotnetProjectFileContent projectDescriptor = _projectStructureParser.ReadAndParse(projectFullPath);
-            projects[projectFullPath] = projectDescriptor;
+            DotnetProjectFileContent? projectDescriptor = _projectStructureParser.ReadAndParse(projectFullPath);
+            if (projectDescriptor is not null)
+                projects[projectFullPath] = projectDescriptor.Value;
         }
 
         _logger.LogInformation("Solution parsed and contains {projectCount}", projectFileDescriptors.Count);
@@ -74,16 +75,23 @@ public class DotnetSolutionStructureParser
 
             if (isPathToProject)
             {
-                _logger.LogDebug("Parsing project row with name {ProjectName}", projectName);
+                if (projectPath.EndsWith("vdproj"))
+                {
+                    _logger.LogTrace("vdproj is not supported. Skip project {path}", projectPath);
+                }
+                else
+                {
+                    _logger.LogDebug("Parsing project row with name {ProjectName}", projectName);
 
-                if (!Guid.TryParse(projectIdString, out Guid projectId))
-                    throw new DotnetSlnParseException($"Project id {projectTypeIdString} is not valid id");
+                    if (!Guid.TryParse(projectIdString, out Guid projectId))
+                        throw new DotnetSlnParseException($"Project id {projectTypeIdString} is not valid id");
 
-                if (!Guid.TryParse(projectTypeIdString, out Guid projectTypeId))
-                    throw new DotnetSlnParseException($"Project type id {projectTypeIdString} is not valid id");
+                    if (!Guid.TryParse(projectTypeIdString, out Guid projectTypeId))
+                        throw new DotnetSlnParseException($"Project type id {projectTypeIdString} is not valid id");
 
-                var project = new DotnetProjectFileDescriptor(projectTypeId, projectName, projectPath, projectId);
-                yield return project;
+                    var project = new DotnetProjectFileDescriptor(projectTypeId, projectName, projectPath, projectId);
+                    yield return project;
+                }
             }
 
             match = match.NextMatch();

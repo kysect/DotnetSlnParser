@@ -2,7 +2,7 @@
 
 namespace Kysect.DotnetSlnParser.Models;
 
-public record DotnetProjectFileContent(
+public record struct DotnetProjectFileContent(
     string? TargetFramework,
     bool EnableDefaultItems,
     IReadOnlyCollection<string> IncludedFiles,
