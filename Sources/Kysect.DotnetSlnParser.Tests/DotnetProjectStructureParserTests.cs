@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Kysect.CommonLib.DependencyInjection;
 using Kysect.DotnetSlnParser.Models;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions.TestingHelpers;
@@ -12,7 +13,7 @@ public class DotnetProjectStructureParserTests
     public DotnetProjectStructureParserTests()
     {
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
-        ILogger logger = TestLogger.Create();
+        ILogger logger = PredefinedLogger.CreateConsoleLogger();
 
         _parser = new DotnetProjectStructureParser(fileSystem, logger);
     }
@@ -45,7 +46,7 @@ public class DotnetProjectStructureParserTests
             IncludedFiles: Array.Empty<string>(),
             References: new[] { "..\\Kysect.DotnetSlnParser\\Kysect.DotnetSlnParser.csproj" });
 
-        DotnetProjectFileContent result = _parser.ParseContent(csprojContent);
+        DotnetProjectFileContent? result = _parser.ParseContent(csprojContent);
 
         result.Should().BeEquivalentTo(expected);
     }
@@ -79,7 +80,7 @@ public class DotnetProjectStructureParserTests
             IncludedFiles: new[] { "Program.cs" },
             References: Array.Empty<string>());
 
-        DotnetProjectFileContent result = _parser.ParseContent(csprojContent);
+        DotnetProjectFileContent? result = _parser.ParseContent(csprojContent);
 
         result.Should().BeEquivalentTo(expected);
     }
@@ -107,7 +108,7 @@ public class DotnetProjectStructureParserTests
 
         var exception = Assert.Throws<DotnetSlnParseException>(() =>
         {
-            DotnetProjectFileContent result = _parser.ParseContent(csprojContent);
+            DotnetProjectFileContent? result = _parser.ParseContent(csprojContent);
 
         });
 

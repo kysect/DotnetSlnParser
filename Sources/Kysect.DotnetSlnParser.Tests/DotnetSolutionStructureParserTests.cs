@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Kysect.CommonLib.DependencyInjection;
 using Kysect.DotnetSlnParser.Models;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions.TestingHelpers;
@@ -12,7 +13,7 @@ public class DotnetSolutionStructureParserTests
     public DotnetSolutionStructureParserTests()
     {
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
-        ILogger logger = TestLogger.Create();
+        ILogger logger = PredefinedLogger.CreateConsoleLogger();
 
         _parser = new DotnetSolutionStructureParser(fileSystem, logger);
     }
