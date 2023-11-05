@@ -50,10 +50,15 @@ public class DotnetSolutionSourceFileFinder
 
             if (descriptorProject.Value.EnableDefaultItems)
             {
+                string binDirectoryPath = Path.Combine(projectFileInfo.Directory.FullName, "bin");
+                string objDirectoryPath = Path.Combine(projectFileInfo.Directory.FullName, "obj");
+
                 _logger.LogInformation("Default items enabled. Trying to add files in directory");
                 List<string> defaultItems = _fileSystem.Directory
                     .EnumerateFiles(projectFileInfo.Directory.FullName, "*", SearchOption.AllDirectories)
                     .Where(p => p != projectFileInfo.FullName)
+                    .Where(p => !p.StartsWith(binDirectoryPath))
+                    .Where(p => !p.StartsWith(objDirectoryPath))
                     .ToList();
 
                 _logger.LogDebug("Added files: ");
