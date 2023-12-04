@@ -1,135 +1,50 @@
-﻿using System.Xml;
-using Kysect.CommonLib.BaseTypes.Extensions;
-using Kysect.DotnetSlnParser.Models;
+﻿using Kysect.DotnetSlnParser.Models;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
+using Microsoft.Language.Xml;
 
 namespace Kysect.DotnetSlnParser.Parsers;
 
 public class ProjectFileParser(IFileSystem fileSystem, ILogger logger)
 {
-    private readonly IFileSystem _fileSystem = fileSystem.ThrowIfNull();
-    private readonly ILogger _logger = logger.ThrowIfNull();
-
     public DotnetProjectFileContent? ReadAndParse(string path)
     {
-        _logger.LogInformation("Parsing project structure for {path}", path);
-        string csprojContent = _fileSystem.File.ReadAllText(path);
+        logger.LogInformation("Parsing project structure for {path}", path);
+        string csprojContent = fileSystem.File.ReadAllText(path);
         return ParseContent(csprojContent);
     }
-
     public DotnetProjectFileContent? ParseContent(string csprojContent)
     {
-        var sources = new List<string>();
-        var references = new List<string>();
+        XmlDocumentSyntax root = Parser.ParseText(csprojContent);
+        XmlProjectFileAccessor xmlProjectFileAccessor = new XmlProjectFileAccessor(root, logger);
 
-        var document = new XmlDocument();
-        document.LoadXml(csprojContent);
-
-        XmlNode? projectNode = document.DocumentElement;
-        if (projectNode is null)
-            throw new ArgumentException($"Cannot load xml, document element collection is null.");
-
-        if (IsLegacyXmlFormat(projectNode))
+        IXmlElementSyntax projectNode = xmlProjectFileAccessor.Single("Project");
+        XmlAttributeSyntax? toolsVersionAttribute = projectNode.GetAttribute("ToolsVersion");
+        if (toolsVersionAttribute is not null)
         {
-            _logger.LogWarning("Legacy xml format is not supported");
+            logger.LogWarning("Legacy xml format is not supported");
             return null;
         }
 
-        bool enableDefaultItems = IsEnableDefaultItems(projectNode);
-        string? targetFramework = FindTargetFramework(projectNode);
+        bool enableDefaultItems = xmlProjectFileAccessor.FindBoolPropertyValue("EnableDefaultItems") ?? true;
+        string? targetFramework = xmlProjectFileAccessor.FindPropertyValue("TargetFramework");
 
-        IReadOnlyCollection<XmlNode> itemGroupNodes = GerChild(projectNode, "ItemGroup");
+        List<string> sources = xmlProjectFileAccessor
+            .GetNodes("Compile")
+            .Select(n => n.GetAttributeValue("Include"))
+            .Where(n => n is not null)
+            .ToList();
 
-        foreach (XmlNode node in itemGroupNodes)
-        {
-            foreach (XmlNode s in node.ChildNodes.Cast<XmlNode>())
-            {
-                if (s.Name == "Compile")
-                {
-                    string filePath = GetAttributeValue(s, "Include");
-                    sources.Add(filePath);
-                }
+        List<string> references = xmlProjectFileAccessor
+            .GetNodes("ProjectReference")
+            .Select(n => n.GetAttributeValue("Include"))
+            .Where(n => n is not null)
+            .ToList();
 
-                if (s.Name == "ProjectReference")
-                {
-                    string referencePath = GetAttributeValue(s, "Include");
-                    references.Add(referencePath);
-                }
-            }
-        }
-
-        _logger.LogInformation("Project structure parsed. Source files: {fileCount}, references: {referenceCount}", sources.Count, references.Count);
+        logger.LogInformation("Project structure parsed. Source files: {fileCount}, references: {referenceCount}", sources.Count, references.Count);
 
         return new DotnetProjectFileContent(targetFramework, enableDefaultItems, sources, references);
-    }
-
-    private bool IsLegacyXmlFormat(XmlNode rootNode)
-    {
-        XmlNode projectNode = rootNode;
-        string? toolsVersion = FindAttributeValue(projectNode, "ToolsVersion");
-
-        return toolsVersion is not null;
-    }
-
-    private bool IsEnableDefaultItems(XmlNode rootNode)
-    {
-        IReadOnlyCollection<XmlNode> itemGroupNodes = GerChild(rootNode, "PropertyGroup");
-        foreach (XmlNode itemGroupNode in itemGroupNodes)
-        {
-            IReadOnlyCollection<XmlNode> enableDefaultItemNodes = GerChild(itemGroupNode, "EnableDefaultItems");
-            foreach (XmlNode enableDefaultItemNode in enableDefaultItemNodes)
-            {
-                if (bool.TryParse(enableDefaultItemNode.InnerText, out var enableDefaultItem))
-                    return enableDefaultItem;
-            }
-        }
-
-        return true;
-    }
-
-    private string? FindTargetFramework(XmlNode rootNode)
-    {
-        IReadOnlyCollection<XmlNode> itemGroupNodes = GerChild(rootNode, "PropertyGroup");
-        foreach (XmlNode itemGroupNode in itemGroupNodes)
-        {
-            IReadOnlyCollection<XmlNode> enableDefaultItemNodes = GerChild(itemGroupNode, "TargetFramework");
-            foreach (XmlNode enableDefaultItemNode in enableDefaultItemNodes)
-            {
-                return enableDefaultItemNode.InnerText;
-            }
-        }
-
-        return null;
-    }
-
-    private static IReadOnlyCollection<XmlNode> GerChild(XmlNode parent, string name)
-    {
-        return parent
-            .ChildNodes
-            .Cast<XmlNode>()
-            .Where(n => n.Name == name)
-            .ToList();
-    }
-
-    private static string GetAttributeValue(XmlNode node, string attrName)
-    {
-        return FindAttributeValue(node, attrName).ThrowIfNull(attrName);
-    }
-
-    private static string? FindAttributeValue(XmlNode node, string name)
-    {
-        if (node.Attributes is null)
-            return null;
-
-        XmlAttribute? attribute = node
-            .Attributes
-            .Cast<XmlAttribute>()
-            .FirstOrDefault(n => string.Equals(n.Name, name, StringComparison.InvariantCultureIgnoreCase));
-
-        return attribute?.Value;
     }
 }

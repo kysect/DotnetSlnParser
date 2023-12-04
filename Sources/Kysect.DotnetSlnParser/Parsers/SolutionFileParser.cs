@@ -28,7 +28,9 @@ public class SolutionFileParser(ILogger logger)
             if (isPathToProject)
             {
                 if (projectPath.EndsWith("vdproj"))
+                {
                     logger.LogTrace("vdproj is not supported. Skip project {path}", projectPath);
+                }
                 else
                 {
                     logger.LogDebug("Parsing project row with name {ProjectName}", projectName);
