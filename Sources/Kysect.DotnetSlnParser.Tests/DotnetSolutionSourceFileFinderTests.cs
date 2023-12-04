@@ -8,7 +8,7 @@ namespace Kysect.DotnetSlnParser.Tests;
 
 public class DotnetSolutionSourceFileFinderTests
 {
-    private DotnetSolutionStructureParser _solutionStructureParser;
+    private DotnetSolutionParser _solutionStructureParser;
     private DotnetSolutionSourceFileFinder _sourceFileFinder;
     private MockFileSystem _fileSystem;
 
@@ -18,7 +18,7 @@ public class DotnetSolutionSourceFileFinderTests
         ILogger logger = DefaultLoggerConfiguration.CreateConsoleLogger();
 
         _fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
-        _solutionStructureParser = new DotnetSolutionStructureParser(_fileSystem, logger);
+        _solutionStructureParser = new DotnetSolutionParser(_fileSystem, logger);
         _sourceFileFinder = new DotnetSolutionSourceFileFinder(_fileSystem, logger);
     }
 
