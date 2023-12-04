@@ -3,6 +3,7 @@ using Kysect.CommonLib.DependencyInjection.Logging;
 using Kysect.DotnetSlnParser.Models;
 using Kysect.DotnetSlnParser.Parsers;
 using Microsoft.Extensions.Logging;
+using NUnit.Framework;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace Kysect.DotnetSlnParser.Tests;

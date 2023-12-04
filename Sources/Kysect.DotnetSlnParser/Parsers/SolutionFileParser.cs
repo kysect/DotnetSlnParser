@@ -3,6 +3,7 @@ using Kysect.DotnetSlnParser.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Kysect.DotnetSlnParser.Parsers;
 
@@ -12,7 +13,12 @@ public class SolutionFileParser(ILogger logger)
         @"Project\(\""(?<typeGuid>.*?)\""\)\s+=\s+\""(?<name>.*?)\"",\s+\""(?<path>.*?)\"",\s+\""(?<guid>.*?)\""(?<content>.*?)\bEndProject\b",
         RegexOptions.ExplicitCapture | RegexOptions.Singleline);
 
-    public IEnumerable<DotnetProjectFileDescriptor> ParseSolutionFileContent(string solutionContents)
+    public IReadOnlyCollection<DotnetProjectFileDescriptor> ParseSolutionFileContent(string solutionContents)
+    {
+        return ParseSolutionFileContentInner(solutionContents).ToList();
+    }
+
+    private IEnumerable<DotnetProjectFileDescriptor> ParseSolutionFileContentInner(string solutionContents)
     {
         Match match = ProjectPattern.Match(solutionContents);
 
