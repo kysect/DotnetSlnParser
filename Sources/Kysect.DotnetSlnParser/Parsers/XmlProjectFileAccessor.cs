@@ -71,4 +71,9 @@ public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
             .Where(n => n.Name == name)
             .ToList();
     }
+
+    public string ToFullString()
+    {
+        return document.ToFullString();
+    }
 }
