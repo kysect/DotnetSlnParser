@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Kysect.CommonLib.DependencyInjection;
+using Kysect.CommonLib.DependencyInjection.Logging;
 using Kysect.DotnetSlnParser.Models;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions.TestingHelpers;
@@ -15,7 +15,7 @@ public class DotnetSolutionSourceFileFinderTests
     [SetUp]
     public void Setup()
     {
-        ILogger logger = PredefinedLogger.CreateConsoleLogger();
+        ILogger logger = DefaultLoggerConfiguration.CreateConsoleLogger();
 
         _fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
         _solutionStructureParser = new DotnetSolutionStructureParser(_fileSystem, logger);
