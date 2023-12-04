@@ -7,18 +7,12 @@ using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
 
-namespace Kysect.DotnetSlnParser;
+namespace Kysect.DotnetSlnParser.Parsers;
 
-public class DotnetProjectStructureParser
+public class ProjectFileParser(IFileSystem fileSystem, ILogger logger)
 {
-    private readonly IFileSystem _fileSystem;
-    private readonly ILogger _logger;
-
-    public DotnetProjectStructureParser(IFileSystem fileSystem, ILogger logger)
-    {
-        _fileSystem = fileSystem.ThrowIfNull();
-        _logger = logger.ThrowIfNull();
-    }
+    private readonly IFileSystem _fileSystem = fileSystem.ThrowIfNull();
+    private readonly ILogger _logger = logger.ThrowIfNull();
 
     public DotnetProjectFileContent? ReadAndParse(string path)
     {
