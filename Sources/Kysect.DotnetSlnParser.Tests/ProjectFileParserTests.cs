@@ -108,13 +108,7 @@ public class ProjectFileParserTests
                             </Project>
                             """;
 
-        var exception = Assert.Throws<DotnetSlnParseException>(() =>
-        {
-            DotnetProjectFileContent? result = _parser.ParseContent(csprojContent);
-
-        });
-
-        exception.Should().NotBeNull();
-        exception.Message.Should().Be("Legacy xml format is not supported");
+        DotnetProjectFileContent? result = _parser.ParseContent(csprojContent);
+        result.Should().BeNull();
     }
 }
