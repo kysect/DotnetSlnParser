@@ -1,19 +1,47 @@
 ﻿using Kysect.CommonLib.BaseTypes.Extensions;
+using Kysect.DotnetSlnParser.Modifiers;
+using Kysect.DotnetSlnParser.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Language.Xml;
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.Linq;
 
 namespace Kysect.DotnetSlnParser.Parsers;
 
 public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
 {
+    public static XmlProjectFileAccessor Create(string path, IFileSystem fileSystem, ILogger logger)
+    {
+        path.ThrowIfNull();
+        fileSystem.ThrowIfNull();
+        logger.ThrowIfNull();
+
+        string csprojContent =
+            fileSystem.File.Exists(path)
+                ? fileSystem.File.ReadAllText(path)
+                : string.Empty;
+
+        XmlDocumentSyntax root = Parser.ParseText(csprojContent);
+        return new XmlProjectFileAccessor(root, logger);
+    }
+
     public void UpdateDocument(Func<XmlDocumentSyntax, XmlDocumentSyntax> morphism)
     {
         morphism.ThrowIfNull();
 
         document = morphism(document);
+    }
+
+    public void UpdateDocument<TSyntax>(IXmlProjectFileModifyStrategy<TSyntax> modifyStrategy)
+        where TSyntax : SyntaxNode
+    {
+        modifyStrategy.ThrowIfNull();
+
+        IReadOnlyCollection<TSyntax> nodes = modifyStrategy.Select(document);
+
+        document = document.ReplaceNodes(nodes, (_, n) => modifyStrategy.ApplyChanges(n));
     }
 
     public IXmlElementSyntax Single(string name)
@@ -33,10 +61,7 @@ public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
 
     public IReadOnlyCollection<IXmlElementSyntax> GetNodesByName(string name)
     {
-        return document
-            .Descendants()
-            .Where(n => n.Name == name)
-            .ToList();
+        return document.GetNodesByName(name);
     }
 
     public string GetPropertyValue(string propertyName)
