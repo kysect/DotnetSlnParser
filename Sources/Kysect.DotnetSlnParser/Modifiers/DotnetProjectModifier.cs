@@ -13,8 +13,9 @@ public class DotnetProjectModifier
     private readonly string _path;
     private readonly IFileSystem _fileSystem;
     private readonly ILogger _logger;
-
     private readonly Lazy<XmlProjectFileAccessor> _fileAccessor;
+
+    public XmlProjectFileAccessor Accessor => _fileAccessor.Value;
 
     public DotnetProjectModifier(string path, IFileSystem fileSystem, ILogger logger)
     {

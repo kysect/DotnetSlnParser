@@ -32,13 +32,13 @@ public class ProjectFileParser(IFileSystem fileSystem, ILogger logger)
         string? targetFramework = xmlProjectFileAccessor.FindPropertyValue("TargetFramework");
 
         List<string> sources = xmlProjectFileAccessor
-            .GetNodes("Compile")
+            .GetNodesByName("Compile")
             .Select(n => n.GetAttributeValue("Include"))
             .Where(n => n is not null)
             .ToList();
 
         List<string> references = xmlProjectFileAccessor
-            .GetNodes("ProjectReference")
+            .GetNodesByName("ProjectReference")
             .Select(n => n.GetAttributeValue("Include"))
             .Where(n => n is not null)
             .ToList();

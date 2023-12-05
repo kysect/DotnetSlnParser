@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Kysect.CommonLib.BaseTypes.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Language.Xml;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,6 +9,13 @@ namespace Kysect.DotnetSlnParser.Parsers;
 
 public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
 {
+    public void UpdateDocument(Func<XmlDocumentSyntax, XmlDocumentSyntax> morphism)
+    {
+        morphism.ThrowIfNull();
+
+        document = morphism(document);
+    }
+
     public IXmlElementSyntax Single(string name)
     {
         return SingleOrDefault(name) ?? throw DotnetSlnParseException.PropertyNotFound(name);
@@ -14,12 +23,20 @@ public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
 
     public IXmlElementSyntax? SingleOrDefault(string name)
     {
-        IReadOnlyCollection<IXmlElementSyntax> elements = GetNodes(name);
+        IReadOnlyCollection<IXmlElementSyntax> elements = GetNodesByName(name);
 
         if (elements.Count > 1)
             throw new DotnetSlnParseException($"Unexpected count of {name} nodes: {elements.Count}");
 
         return elements.SingleOrDefault();
+    }
+
+    public IReadOnlyCollection<IXmlElementSyntax> GetNodesByName(string name)
+    {
+        return document
+            .Descendants()
+            .Where(n => n.Name == name)
+            .ToList();
     }
 
     public string GetPropertyValue(string propertyName)
@@ -34,7 +51,7 @@ public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
 
     public string? FindPropertyValue(string propertyName)
     {
-        IReadOnlyCollection<IXmlElementSyntax> elements = GetNodes(propertyName);
+        IReadOnlyCollection<IXmlElementSyntax> elements = GetNodesByName(propertyName);
 
         if (elements.Count > 1)
             logger.LogWarning("Xml file contains more that one node with name {Name}", propertyName);
@@ -62,14 +79,6 @@ public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
             throw new DotnetSlnParseException($"Property {propertyName} cannot be parsed");
 
         return result;
-    }
-
-    public IReadOnlyCollection<IXmlElementSyntax> GetNodes(string name)
-    {
-        return document
-            .Descendants()
-            .Where(n => n.Name == name)
-            .ToList();
     }
 
     public string ToFullString()
