@@ -19,6 +19,8 @@ public class DotnetSolutionModifier
     private readonly DotnetPropsModifier _directoryPackagePropsModifier;
     private readonly Lazy<IReadOnlyCollection<DotnetProjectModifier>> _projects;
 
+    public IReadOnlyCollection<DotnetProjectModifier> Projects => _projects.Value;
+
     public DotnetSolutionModifier(string solutionPath, IFileSystem fileSystem, ILogger logger, SolutionFileParser solutionFileParser)
     {
         _solutionFileParser = solutionFileParser.ThrowIfNull();
