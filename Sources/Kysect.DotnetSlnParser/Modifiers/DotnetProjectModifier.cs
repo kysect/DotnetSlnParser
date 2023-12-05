@@ -12,7 +12,6 @@ public class DotnetProjectModifier
 
     private readonly string _path;
     private readonly IFileSystem _fileSystem;
-    private readonly ILogger _logger;
     private readonly Lazy<XmlProjectFileAccessor> _fileAccessor;
 
     public XmlProjectFileAccessor Accessor => _fileAccessor.Value;
@@ -21,9 +20,8 @@ public class DotnetProjectModifier
     {
         _path = path;
         _fileSystem = fileSystem;
-        _logger = logger;
 
-        _fileAccessor = new Lazy<XmlProjectFileAccessor>(CreateFileAccessor);
+        _fileAccessor = new Lazy<XmlProjectFileAccessor>(() => XmlProjectFileAccessor.Create(_path, _fileSystem, logger));
     }
 
     public bool SupportModification()
@@ -40,12 +38,5 @@ public class DotnetProjectModifier
             return;
 
         _fileSystem.File.WriteAllText(_path, _fileAccessor.Value.ToFullString());
-    }
-
-    private XmlProjectFileAccessor CreateFileAccessor()
-    {
-        string csprojContent = _fileSystem.File.ReadAllText(_path);
-        XmlDocumentSyntax root = Parser.ParseText(csprojContent);
-        return new XmlProjectFileAccessor(root, _logger);
     }
 }

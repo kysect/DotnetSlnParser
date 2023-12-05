@@ -1,67 +1,61 @@
 ﻿using Kysect.CommonLib.BaseTypes.Extensions;
+using Kysect.DotnetSlnParser.Models;
 using Kysect.DotnetSlnParser.Parsers;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
-using System.Linq;
 
 namespace Kysect.DotnetSlnParser.Modifiers;
 
 public class DotnetSolutionModifier
 {
-    private readonly IFileSystem _fileSystem;
-    private readonly SolutionFileParser _solutionFileParser;
-    private readonly ILogger _logger;
+    public IReadOnlyCollection<DotnetProjectModifier> Projects { get; }
+    public DotnetPropsModifier DirectoryBuildPropsModifier { get; }
+    public DotnetPropsModifier DirectoryPackagePropsModifier { get; }
 
-    private readonly string _solutionPath;
-    private readonly DotnetPropsModifier _directoryBuildPropsModifier;
-    private readonly DotnetPropsModifier _directoryPackagePropsModifier;
-    private readonly Lazy<IReadOnlyCollection<DotnetProjectModifier>> _projects;
-
-    public IReadOnlyCollection<DotnetProjectModifier> Projects => _projects.Value;
-
-    public DotnetSolutionModifier(string solutionPath, IFileSystem fileSystem, ILogger logger, SolutionFileParser solutionFileParser)
+    public static DotnetSolutionModifier Create(string solutionPath, IFileSystem fileSystem, ILogger logger, SolutionFileParser solutionFileParser)
     {
-        _solutionFileParser = solutionFileParser.ThrowIfNull();
-        _solutionPath = solutionPath.ThrowIfNull();
-        _fileSystem = fileSystem.ThrowIfNull();
-        _logger = logger.ThrowIfNull();
+        solutionPath.ThrowIfNull();
+        fileSystem.ThrowIfNull();
+        logger.ThrowIfNull();
+        solutionFileParser.ThrowIfNull();
 
         IFileInfo fileInfo = fileSystem.FileInfo.New(solutionPath);
         fileInfo.Directory.ThrowIfNull();
-        _directoryBuildPropsModifier = new DotnetPropsModifier(_fileSystem.Path.Combine(fileInfo.Directory.FullName, "Directory.Build.props"), _fileSystem);
-        _directoryPackagePropsModifier = new DotnetPropsModifier(_fileSystem.Path.Combine(fileInfo.Directory.FullName, "Directory.Package.props"), _fileSystem);
-        _projects = new Lazy<IReadOnlyCollection<DotnetProjectModifier>>(ParseProjects);
+
+        var directoryBuildPropsModifier = new DotnetPropsModifier(fileSystem.Path.Combine(fileInfo.Directory.FullName, "Directory.Build.props"), fileSystem, logger);
+        var directoryPackagePropsModifier = new DotnetPropsModifier(fileSystem.Path.Combine(fileInfo.Directory.FullName, "Directory.Package.props"), fileSystem, logger);
+
+        string solutionFileContent = fileSystem.File.ReadAllText(solutionPath);
+        IReadOnlyCollection<DotnetProjectFileDescriptor> projectFileDescriptors = solutionFileParser.ParseSolutionFileContent(solutionFileContent);
+        var projects = new List<DotnetProjectModifier>();
+
+        foreach (DotnetProjectFileDescriptor projectFileDescriptor in projectFileDescriptors)
+        {
+            var projectModifier = new DotnetProjectModifier(projectFileDescriptor.ProjectPath, fileSystem, logger);
+            bool supportModification = projectModifier.SupportModification();
+            if (!supportModification)
+                logger.LogWarning("Project {Path} use legacy csproj format and will be skipped.", projectModifier.Path);
+            else
+                projects.Add(projectModifier);
+        }
+
+        return new DotnetSolutionModifier(projects, directoryBuildPropsModifier, directoryPackagePropsModifier);
+    }
+
+    public DotnetSolutionModifier(IReadOnlyCollection<DotnetProjectModifier> projects, DotnetPropsModifier directoryBuildPropsModifier, DotnetPropsModifier directoryPackagePropsModifier)
+    {
+        Projects = projects;
+        DirectoryBuildPropsModifier = directoryBuildPropsModifier;
+        DirectoryPackagePropsModifier = directoryPackagePropsModifier;
     }
 
     public void Save()
     {
-        _directoryBuildPropsModifier.Save();
-        _directoryPackagePropsModifier.Save();
+        DirectoryBuildPropsModifier.Save();
+        DirectoryPackagePropsModifier.Save();
 
-        if (_projects.IsValueCreated)
-        {
-            foreach (DotnetProjectModifier projectModifier in _projects.Value)
-                projectModifier.Save();
-        }
-    }
-
-    private IReadOnlyCollection<DotnetProjectModifier> ParseProjects()
-    {
-        string solutionFileContent = _fileSystem.File.ReadAllText(_solutionPath);
-        var projects = _solutionFileParser
-            .ParseSolutionFileContent(solutionFileContent)
-            .Select(p => new DotnetProjectModifier(p.ProjectPath, _fileSystem, _logger))
-            .Where(p =>
-            {
-                bool supportModification = p.SupportModification();
-                if (!supportModification)
-                    _logger.LogWarning("Project {Path} use legacy csproj format and will be skipped.", p.Path);
-                return supportModification;
-            })
-            .ToList();
-
-        return projects;
+        foreach (DotnetProjectModifier projectModifier in Projects)
+            projectModifier.Save();
     }
 }

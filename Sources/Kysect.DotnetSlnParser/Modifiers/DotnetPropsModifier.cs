@@ -1,4 +1,5 @@
-﻿using Microsoft.Language.Xml;
+﻿using Kysect.DotnetSlnParser.Parsers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO.Abstractions;
 
@@ -8,27 +9,21 @@ public class DotnetPropsModifier
 {
     private readonly string _path;
     private readonly IFileSystem _fileSystem;
+    private readonly Lazy<XmlProjectFileAccessor> _fileAccessor;
+    public XmlProjectFileAccessor Accessor => _fileAccessor.Value;
 
-    private readonly Lazy<XmlDocumentSyntax> _document;
-
-    public DotnetPropsModifier(string path, IFileSystem fileSystem)
+    public DotnetPropsModifier(string path, IFileSystem fileSystem, ILogger logger)
     {
         _path = path;
         _fileSystem = fileSystem;
-        _document = new Lazy<XmlDocumentSyntax>(LoadDocument);
+        _fileAccessor = new Lazy<XmlProjectFileAccessor>(() => XmlProjectFileAccessor.Create(_path, _fileSystem, logger));
     }
 
     public void Save()
     {
-        if (!_document.IsValueCreated)
+        if (!_fileAccessor.IsValueCreated)
             return;
 
-        _fileSystem.File.WriteAllText(_path, _document.Value.ToFullString());
-    }
-
-    private XmlDocumentSyntax LoadDocument()
-    {
-        string fileContent = _fileSystem.File.ReadAllText(_path);
-        return Parser.ParseText(fileContent);
+        _fileSystem.File.WriteAllText(_path, _fileAccessor.Value.ToFullString());
     }
 }

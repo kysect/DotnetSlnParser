@@ -4,7 +4,6 @@ using Kysect.DotnetSlnParser.Modifiers;
 using Kysect.DotnetSlnParser.Parsers;
 using Kysect.DotnetSlnParser.Tests.Tools;
 using Microsoft.Extensions.Logging;
-using Microsoft.Language.Xml;
 using NUnit.Framework;
 using System.IO.Abstractions.TestingHelpers;
 
@@ -49,7 +48,7 @@ public class DotnetSolutionModifierTests
         _fileSystem.AddDirectory(projectDirectoryPath);
         _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
 
-        var solutionModifier = new DotnetSolutionModifier("Solution.sln", _fileSystem, _logger, new SolutionFileParser(_logger));
+        var solutionModifier = DotnetSolutionModifier.Create("Solution.sln", _fileSystem, _logger, new SolutionFileParser(_logger));
 
         solutionModifier.Save();
     }
@@ -82,26 +81,10 @@ public class DotnetSolutionModifierTests
         _fileSystem.AddDirectory(projectDirectoryPath);
         _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
 
-        var solutionModifier = new DotnetSolutionModifier("Solution.sln", _fileSystem, _logger, new SolutionFileParser(_logger));
+        var solutionModifier = DotnetSolutionModifier.Create("Solution.sln", _fileSystem, _logger, new SolutionFileParser(_logger));
 
         foreach (DotnetProjectModifier solutionModifierProject in solutionModifier.Projects)
-        {
-            var nodes = solutionModifierProject
-                .Accessor
-                .GetNodesByName("TargetFramework")
-                .OfType<XmlElementSyntax>()
-                .ToList();
-
-            solutionModifierProject.Accessor.UpdateDocument(d =>
-            {
-                return d
-                    .ReplaceNodes(nodes, (_, n) =>
-                    {
-                        XmlTextSyntax content = SyntaxFactory.XmlText(SyntaxFactory.XmlTextLiteralToken("net9.0", null, null));
-                        return n.ReplaceNode(n.Content.Single(), content);
-                    });
-            });
-        }
+            solutionModifierProject.Accessor.UpdateDocument(new SetTargetFrameworkModifyStrategy("net9.0"));
 
         solutionModifier.Save();
 
