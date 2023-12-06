@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Kysect.CommonLib.DependencyInjection.Logging;
 using Kysect.DotnetSlnParser.Models;
+using Kysect.DotnetSlnParser.Parsers;
 using Kysect.DotnetSlnParser.Tests.Tools;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;

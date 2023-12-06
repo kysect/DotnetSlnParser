@@ -1,12 +1,11 @@
 ﻿using Kysect.CommonLib.BaseTypes.Extensions;
 using Kysect.DotnetSlnParser.Models;
-using Kysect.DotnetSlnParser.Parsers;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
 
-namespace Kysect.DotnetSlnParser;
+namespace Kysect.DotnetSlnParser.Parsers;
 
 public class DotnetSolutionParser
 {
@@ -39,7 +38,7 @@ public class DotnetSolutionParser
 
         string slnFileContent = _fileSystem.File.ReadAllText(solutionFileFullPath);
 
-        List<DotnetProjectFileDescriptor> projectFileDescriptors = _solutionFileParser.ParseSolutionFileContent(slnFileContent).ToList();
+        var projectFileDescriptors = _solutionFileParser.ParseSolutionFileContent(slnFileContent).ToList();
         var projects = new Dictionary<string, DotnetProjectFileContent>();
         foreach (DotnetProjectFileDescriptor? projectFileDescriptor in projectFileDescriptors)
         {
