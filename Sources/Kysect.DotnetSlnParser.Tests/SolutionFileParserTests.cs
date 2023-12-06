@@ -35,13 +35,13 @@ public class SolutionFileParserTests
             new DotnetProjectFileDescriptor(
                 Guid.Empty,
                 "Kysect.DotnetSlnParser",
-                "Kysect.DotnetSlnParser\\Kysect.DotnetSlnParser.csproj",
+                fileSystem.Path.Combine("Kysect.DotnetSlnParser", "Kysect.DotnetSlnParser.csproj"),
                 Guid.Empty),
 
             new DotnetProjectFileDescriptor(
                 Guid.Empty,
                 "Kysect.DotnetSlnParser.Tests",
-                "Kysect.DotnetSlnParser.Tests\\Kysect.DotnetSlnParser.Tests.csproj",
+                fileSystem.Path.Combine("Kysect.DotnetSlnParser.Tests", "Kysect.DotnetSlnParser.Tests.csproj"),
                 Guid.Empty),
         };
 
