@@ -24,7 +24,7 @@ public class DotnetSolutionModifierTests
     [Test]
     public void Save_WithoutChanges_FinishWithoutErrors()
     {
-        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", @"SampleProject\SampleProject.csproj"));
+        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", _fileSystem.Path.Combine("SampleProject", "SampleProject.csproj")));
 
         var projectContent = """
                              <Project Sdk="Microsoft.NET.Sdk">
@@ -56,7 +56,7 @@ public class DotnetSolutionModifierTests
     [Test]
     public void Save_AfterChangingTargetFramework_ChangeFileContentToExpected()
     {
-        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", @"SampleProject\SampleProject.csproj"));
+        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", _fileSystem.Path.Combine("SampleProject", "SampleProject.csproj")));
 
         var projectContent = """
                              <Project Sdk="Microsoft.NET.Sdk">
