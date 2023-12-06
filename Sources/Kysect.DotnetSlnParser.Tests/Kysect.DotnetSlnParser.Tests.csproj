@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Kysect.DotnetSlnGenerator\Kysect.DotnetSlnGenerator.csproj" />
     <ProjectReference Include="..\Kysect.DotnetSlnParser\Kysect.DotnetSlnParser.csproj" />
   </ItemGroup>
 

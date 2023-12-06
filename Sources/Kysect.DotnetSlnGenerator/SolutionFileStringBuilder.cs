@@ -1,23 +1,12 @@
 ﻿using System.Text;
 
-namespace Kysect.DotnetSlnParser.Tests.Tools;
+namespace Kysect.DotnetSlnGenerator;
 
-public static class SolutionItemFactory
+public class SolutionFileStringBuilder
 {
-    public static string CreateSolutionFile(params (string ProjectName, string ProjectPath)[] projectDefinitions)
-    {
-        string[] projects = projectDefinitions
-            .Select(p =>
-                $$"""
-                  Project("{{{Guid.Empty}}}") = "{{p.ProjectName}}", "{{p.ProjectPath}}", "{{{Guid.Empty}}}"
-                  EndProject
-                  """)
-            .ToArray();
+    private readonly StringBuilder _builder;
 
-        return CreateSolutionFile(projects);
-    }
-
-    public static string CreateSolutionFile(params string[] projectDefinitions)
+    public SolutionFileStringBuilder()
     {
         var header = """
                      Microsoft Visual Studio Solution File, Format Version 12.00
@@ -26,6 +15,23 @@ public static class SolutionItemFactory
                      MinimumVisualStudioVersion = 10.0.40219.1
                      """;
 
+        _builder = new StringBuilder();
+        _builder.AppendLine(header);
+    }
+
+    public SolutionFileStringBuilder AddProject(string projectName, string projectPath)
+    {
+        string projectDefinition = $$"""
+                                     Project("{{{Guid.Empty}}}") = "{{projectName}}", "{{projectPath}}", "{{{Guid.Empty}}}"
+                                     EndProject
+                                     """;
+
+        _builder.AppendLine(projectDefinition);
+        return this;
+    }
+
+    public string Build()
+    {
         var footer = """
                      Global
                      	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,12 +54,7 @@ public static class SolutionItemFactory
                      EndGlobal
                      """;
 
-        StringBuilder builder = new StringBuilder()
-            .AppendLine(header)
-            .AppendJoin(Environment.NewLine, projectDefinitions)
-            .AppendLine()
-            .AppendLine(footer);
-
-        return builder.ToString();
+        _builder.AppendLine(footer);
+        return _builder.ToString();
     }
 }
