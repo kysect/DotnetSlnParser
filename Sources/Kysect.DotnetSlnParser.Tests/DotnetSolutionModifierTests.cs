@@ -41,10 +41,10 @@ public class DotnetSolutionModifierTests
                              </Project>
                              """;
 
-        string projectDirectoryPath = @"C:\SampleProject";
+        string projectDirectoryPath = @"SampleProject";
         string fullPathToProjectFile = Path.Combine(projectDirectoryPath, "SampleProject.csproj");
 
-        _fileSystem.AddFile(@"C:\Solution.sln", new MockFileData(solutionContent));
+        _fileSystem.AddFile(@"Solution.sln", new MockFileData(solutionContent));
         _fileSystem.AddDirectory(projectDirectoryPath);
         _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
 
@@ -74,10 +74,10 @@ public class DotnetSolutionModifierTests
                              </Project>
                              """;
 
-        string projectDirectoryPath = @"C:\SampleProject";
+        string projectDirectoryPath = @"SampleProject";
         string fullPathToProjectFile = Path.Combine(projectDirectoryPath, "SampleProject.csproj");
 
-        _fileSystem.AddFile(@"C:\Solution.sln", new MockFileData(solutionContent));
+        _fileSystem.AddFile(@"Solution.sln", new MockFileData(solutionContent));
         _fileSystem.AddDirectory(projectDirectoryPath);
         _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
 
