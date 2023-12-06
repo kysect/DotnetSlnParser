@@ -28,7 +28,7 @@ public class DotnetSolutionSourceFileFinderTests
     [Test]
     public void FindSourceFiles_ProjectWithDefaultItems_ReturnExpectedResult()
     {
-        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", @"SampleProject\SampleProject.csproj"));
+        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", _fileSystem.Path.Combine("SampleProject", "SampleProject.csproj")));
 
         var projectContent = """
                              <Project Sdk="Microsoft.NET.Sdk">
@@ -60,7 +60,7 @@ public class DotnetSolutionSourceFileFinderTests
         _fileSystem.AddEmptyFile(pathToSecondFile);
 
         var expectedProjectPaths = new DotnetProjectPaths(
-            _fileSystem.Path.Combine(currentPath, @"SampleProject\SampleProject.csproj"),
+            _fileSystem.Path.Combine(currentPath, "SampleProject", "SampleProject.csproj"),
             new[] { fullPathToFirstFile, pathToSecondFile });
 
         var expected = new DotnetSolutionPaths(
@@ -77,7 +77,7 @@ public class DotnetSolutionSourceFileFinderTests
     [Test]
     public void FindSourceFiles_ProjectWithDefaultItemsAndBinObjDirectories_ReturnExpectedResult()
     {
-        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", @"SampleProject\SampleProject.csproj"));
+        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", _fileSystem.Path.Combine("SampleProject", "SampleProject.csproj")));
 
         var projectContent = """
                              <Project Sdk="Microsoft.NET.Sdk">
@@ -114,7 +114,7 @@ public class DotnetSolutionSourceFileFinderTests
         _fileSystem.AddEmptyFile(pathToSecondFile);
 
         var expectedProjectPaths = new DotnetProjectPaths(
-            _fileSystem.Path.Combine(currentPath, @"SampleProject\SampleProject.csproj"),
+            _fileSystem.Path.Combine(currentPath, "SampleProject", "SampleProject.csproj"),
             new[] { fullPathToFirstFile, pathToSecondFile });
 
         var expected = new DotnetSolutionPaths(
