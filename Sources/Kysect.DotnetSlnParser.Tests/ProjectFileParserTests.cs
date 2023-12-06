@@ -1,21 +1,24 @@
 ﻿using FluentAssertions;
-using Kysect.CommonLib.DependencyInjection;
+using Kysect.CommonLib.DependencyInjection.Logging;
 using Kysect.DotnetSlnParser.Models;
+using Kysect.DotnetSlnParser.Parsers;
 using Microsoft.Extensions.Logging;
+using NUnit.Framework;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace Kysect.DotnetSlnParser.Tests;
 
-public class DotnetProjectStructureParserTests
+public class ProjectFileParserTests
 {
-    private readonly DotnetProjectStructureParser _parser;
+    private readonly ProjectFileParser _parser;
 
-    public DotnetProjectStructureParserTests()
+    public ProjectFileParserTests()
     {
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
-        ILogger logger = PredefinedLogger.CreateConsoleLogger();
+        ILogger logger = DefaultLoggerConfiguration.CreateConsoleLogger();
 
-        _parser = new DotnetProjectStructureParser(fileSystem, logger);
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
+
+        _parser = new ProjectFileParser(fileSystem, logger);
     }
 
     [Test]
@@ -106,13 +109,7 @@ public class DotnetProjectStructureParserTests
                             </Project>
                             """;
 
-        var exception = Assert.Throws<DotnetSlnParseException>(() =>
-        {
-            DotnetProjectFileContent? result = _parser.ParseContent(csprojContent);
-
-        });
-
-        exception.Should().NotBeNull();
-        exception.Message.Should().Be("Legacy xml format is not supported");
+        DotnetProjectFileContent? result = _parser.ParseContent(csprojContent);
+        result.Should().BeNull();
     }
 }

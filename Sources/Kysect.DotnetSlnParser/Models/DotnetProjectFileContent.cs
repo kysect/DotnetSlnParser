@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Kysect.DotnetSlnParser.Models;
+﻿namespace Kysect.DotnetSlnParser.Models;
 
 public record struct DotnetProjectFileContent(
     string? TargetFramework,
