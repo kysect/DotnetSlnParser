@@ -1,5 +1,3 @@
-﻿using System;
-
-namespace Kysect.DotnetSlnParser.Models;
+﻿namespace Kysect.DotnetSlnParser.Models;
 
 public record DotnetProjectFileDescriptor(Guid ProjectTypeGuid, string ProjectName, string ProjectPath, Guid ProjectGuid);

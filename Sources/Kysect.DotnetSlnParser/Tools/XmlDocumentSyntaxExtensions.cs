@@ -1,6 +1,4 @@
 ﻿using Microsoft.Language.Xml;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Kysect.DotnetSlnParser.Tools;
 

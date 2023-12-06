@@ -1,9 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Kysect.DotnetSlnParser.Models;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Kysect.DotnetSlnParser.Parsers;
 

@@ -3,10 +3,7 @@ using Kysect.DotnetSlnParser.Modifiers;
 using Kysect.DotnetSlnParser.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Language.Xml;
-using System;
-using System.Collections.Generic;
 using System.IO.Abstractions;
-using System.Linq;
 
 namespace Kysect.DotnetSlnParser.Parsers;
 
