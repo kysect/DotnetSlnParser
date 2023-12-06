@@ -7,7 +7,7 @@ namespace Kysect.DotnetSlnParser.Tests.Tools;
 
 public class SetTargetFrameworkModifyStrategy(string value) : IXmlProjectFileModifyStrategy<XmlElementSyntax>
 {
-    public IReadOnlyCollection<XmlElementSyntax> Select(XmlDocumentSyntax document)
+    public IReadOnlyCollection<XmlElementSyntax> SelectNodeForModify(XmlDocumentSyntax document)
     {
         document.ThrowIfNull();
 

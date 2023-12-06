@@ -7,7 +7,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 
-namespace Kysect.DotnetSlnParser;
+namespace Kysect.DotnetSlnParser.Parsers;
 
 public record DotnetSolutionPaths(string SolutionFileFullPath, IReadOnlyCollection<DotnetProjectPaths> ProjectPaths);
 public record DotnetProjectPaths(string ProjectFileFullPath, IReadOnlyCollection<string> SourceFileFullPaths);
@@ -39,7 +39,7 @@ public class DotnetSolutionSourceFileFinder
                 throw new DotnetSlnParseException($"Cannot get project directory for {descriptorProject.Key}");
 
             _logger.LogInformation("Adding files from csproj");
-            List<string> projectFileFullPaths = descriptorProject.Value
+            var projectFileFullPaths = descriptorProject.Value
                 .IncludedFiles
                 .Select(p => _fileSystem.Path.Combine(projectFileInfo.Directory.FullName, p))
                 .ToList();
@@ -54,7 +54,7 @@ public class DotnetSolutionSourceFileFinder
                 string objDirectoryPath = Path.Combine(projectFileInfo.Directory.FullName, "obj");
 
                 _logger.LogInformation("Default items enabled. Trying to add files in directory");
-                List<string> defaultItems = _fileSystem.Directory
+                var defaultItems = _fileSystem.Directory
                     .EnumerateFiles(projectFileInfo.Directory.FullName, "*", SearchOption.AllDirectories)
                     .Where(p => p != projectFileInfo.FullName)
                     .Where(p => !p.StartsWith(binDirectoryPath))

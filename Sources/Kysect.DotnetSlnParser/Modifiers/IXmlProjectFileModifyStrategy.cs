@@ -6,6 +6,6 @@ namespace Kysect.DotnetSlnParser.Modifiers;
 public interface IXmlProjectFileModifyStrategy<TSyntax>
     where TSyntax : SyntaxNode
 {
-    IReadOnlyCollection<TSyntax> Select(XmlDocumentSyntax document);
+    IReadOnlyCollection<TSyntax> SelectNodeForModify(XmlDocumentSyntax document);
     SyntaxNode ApplyChanges(TSyntax syntax);
 }

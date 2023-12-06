@@ -12,6 +12,8 @@ namespace Kysect.DotnetSlnParser.Parsers;
 
 public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
 {
+    public XmlDocumentSyntax Document => document;
+
     public static XmlProjectFileAccessor Create(string path, IFileSystem fileSystem, ILogger logger)
     {
         path.ThrowIfNull();
@@ -39,7 +41,7 @@ public class XmlProjectFileAccessor(XmlDocumentSyntax document, ILogger logger)
     {
         modifyStrategy.ThrowIfNull();
 
-        IReadOnlyCollection<TSyntax> nodes = modifyStrategy.Select(document);
+        IReadOnlyCollection<TSyntax> nodes = modifyStrategy.SelectNodeForModify(document);
 
         document = document.ReplaceNodes(nodes, (_, n) => modifyStrategy.ApplyChanges(n));
     }
