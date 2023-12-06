@@ -45,13 +45,14 @@ public class DotnetSolutionSourceFileFinderTests
                              </Project>
                              """;
 
-        string projectDirectoryPath = @"C:\SampleProject";
+        string currentPath = _fileSystem.Path.GetFullPath(".");
+        string projectDirectoryPath = _fileSystem.Path.Combine(currentPath, "SampleProject");
         string fullPathToProjectFile = Path.Combine(projectDirectoryPath, "SampleProject.csproj");
         string fullPathToFirstFile = Path.Combine(projectDirectoryPath, "File1.cs");
         string pathToInnerDirectory = Path.Combine(projectDirectoryPath, "InnerDirectory");
         string pathToSecondFile = Path.Combine(projectDirectoryPath, "InnerDirectory", "File2.cs");
 
-        _fileSystem.AddFile(@"C:\Solution.sln", new MockFileData(solutionContent));
+        _fileSystem.AddFile(@"Solution.sln", new MockFileData(solutionContent));
         _fileSystem.AddDirectory(projectDirectoryPath);
         _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
         _fileSystem.AddEmptyFile(fullPathToFirstFile);
@@ -59,11 +60,11 @@ public class DotnetSolutionSourceFileFinderTests
         _fileSystem.AddEmptyFile(pathToSecondFile);
 
         var expectedProjectPaths = new DotnetProjectPaths(
-            @"C:\SampleProject\SampleProject.csproj",
+            _fileSystem.Path.Combine(currentPath, @"SampleProject\SampleProject.csproj"),
             new[] { fullPathToFirstFile, pathToSecondFile });
 
         var expected = new DotnetSolutionPaths(
-            @"C:\Solution.sln",
+            _fileSystem.Path.Combine(currentPath, "Solution.sln"),
             new[] { expectedProjectPaths });
 
 
@@ -93,7 +94,8 @@ public class DotnetSolutionSourceFileFinderTests
                              </Project>
                              """;
 
-        string projectDirectoryPath = @"C:\SampleProject";
+        string currentPath = _fileSystem.Path.GetFullPath(".");
+        string projectDirectoryPath = _fileSystem.Path.Combine(currentPath, @"SampleProject");
         string fullPathToProjectFile = Path.Combine(projectDirectoryPath, "SampleProject.csproj");
         string fullPathToFirstFile = Path.Combine(projectDirectoryPath, "File1.cs");
         string pathToInnerDirectory = Path.Combine(projectDirectoryPath, "InnerDirectory");
@@ -102,7 +104,7 @@ public class DotnetSolutionSourceFileFinderTests
         string pathToFileInBin = Path.Combine(projectDirectoryPath, "bin", "Bin.cs");
         string pathToFileInObj = Path.Combine(projectDirectoryPath, "obj", "Obj.cs");
 
-        _fileSystem.AddFile(@"C:\Solution.sln", new MockFileData(solutionContent));
+        _fileSystem.AddFile(@"Solution.sln", new MockFileData(solutionContent));
         _fileSystem.AddDirectory(projectDirectoryPath);
         _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
         _fileSystem.AddEmptyFile(fullPathToFirstFile);
@@ -112,11 +114,11 @@ public class DotnetSolutionSourceFileFinderTests
         _fileSystem.AddEmptyFile(pathToSecondFile);
 
         var expectedProjectPaths = new DotnetProjectPaths(
-            @"C:\SampleProject\SampleProject.csproj",
+            _fileSystem.Path.Combine(currentPath, @"SampleProject\SampleProject.csproj"),
             new[] { fullPathToFirstFile, pathToSecondFile });
 
         var expected = new DotnetSolutionPaths(
-            @"C:\Solution.sln",
+            _fileSystem.Path.Combine(currentPath, @"Solution.sln"),
             new[] { expectedProjectPaths });
 
 
