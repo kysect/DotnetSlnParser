@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using Kysect.CommonLib.DependencyInjection.Logging;
+using Kysect.DotnetSlnGenerator;
 using Kysect.DotnetSlnParser.Models;
 using Kysect.DotnetSlnParser.Parsers;
-using Kysect.DotnetSlnParser.Tests.Tools;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System.IO.Abstractions.TestingHelpers;
@@ -28,36 +28,24 @@ public class DotnetSolutionSourceFileFinderTests
     [Test]
     public void FindSourceFiles_ProjectWithDefaultItems_ReturnExpectedResult()
     {
-        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", _fileSystem.Path.Combine("SampleProject", "SampleProject.csproj")));
-
-        var projectContent = """
-                             <Project Sdk="Microsoft.NET.Sdk">
-                               <PropertyGroup>
-                                 <TargetFramework>net8.0</TargetFramework>
-                                 <ImplicitUsings>enable</ImplicitUsings>
-                                 <Nullable>enable</Nullable>
-                               </PropertyGroup>
-                             
-                               <ItemGroup>
-                                 <PackageReference Include="FluentAssertions" />
-                                 <PackageReference Include="Microsoft.NET.Test.Sdk" />
-                               </ItemGroup>
-                             </Project>
-                             """;
+        string projectContent = """
+                                <Project Sdk="Microsoft.NET.Sdk">
+                                  <PropertyGroup>
+                                    <TargetFramework>net8.0</TargetFramework>
+                                    <ImplicitUsings>enable</ImplicitUsings>
+                                    <Nullable>enable</Nullable>
+                                  </PropertyGroup>
+                                
+                                  <ItemGroup>
+                                    <PackageReference Include="FluentAssertions" />
+                                    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+                                  </ItemGroup>
+                                </Project>
+                                """;
 
         string currentPath = _fileSystem.Path.GetFullPath(".");
-        string projectDirectoryPath = _fileSystem.Path.Combine(currentPath, "SampleProject");
-        string fullPathToProjectFile = Path.Combine(projectDirectoryPath, "SampleProject.csproj");
-        string fullPathToFirstFile = Path.Combine(projectDirectoryPath, "File1.cs");
-        string pathToInnerDirectory = Path.Combine(projectDirectoryPath, "InnerDirectory");
-        string pathToSecondFile = Path.Combine(projectDirectoryPath, "InnerDirectory", "File2.cs");
-
-        _fileSystem.AddFile(@"Solution.sln", new MockFileData(solutionContent));
-        _fileSystem.AddDirectory(projectDirectoryPath);
-        _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
-        _fileSystem.AddEmptyFile(fullPathToFirstFile);
-        _fileSystem.AddDirectory(pathToInnerDirectory);
-        _fileSystem.AddEmptyFile(pathToSecondFile);
+        string fullPathToFirstFile = _fileSystem.Path.Combine(currentPath, "SampleProject", "File1.cs");
+        string pathToSecondFile = _fileSystem.Path.Combine(currentPath, "SampleProject", "InnerDirectory", "File2.cs");
 
         var expectedProjectPaths = new DotnetProjectPaths(
             _fileSystem.Path.Combine(currentPath, "SampleProject", "SampleProject.csproj"),
@@ -67,7 +55,13 @@ public class DotnetSolutionSourceFileFinderTests
             _fileSystem.Path.Combine(currentPath, "Solution.sln"),
             new[] { expectedProjectPaths });
 
+        var solutionBuilder = new DotnetSolutionBuilder("Solution")
+            .AddProject(
+                new DotnetProjectBuilder("SampleProject", projectContent)
+                    .AddEmptyFile("File1.cs")
+                    .AddEmptyFile("InnerDirectory", "File2.cs"));
 
+        solutionBuilder.Save(_fileSystem, currentPath);
         DotnetSolutionDescriptor dotnetSolutionDescriptor = _solutionStructureParser.Parse("Solution.sln");
         DotnetSolutionPaths dotnetSolutionPaths = _sourceFileFinder.FindSourceFiles(dotnetSolutionDescriptor);
 
@@ -77,51 +71,42 @@ public class DotnetSolutionSourceFileFinderTests
     [Test]
     public void FindSourceFiles_ProjectWithDefaultItemsAndBinObjDirectories_ReturnExpectedResult()
     {
-        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", _fileSystem.Path.Combine("SampleProject", "SampleProject.csproj")));
-
-        var projectContent = """
-                             <Project Sdk="Microsoft.NET.Sdk">
-                               <PropertyGroup>
-                                 <TargetFramework>net8.0</TargetFramework>
-                                 <ImplicitUsings>enable</ImplicitUsings>
-                                 <Nullable>enable</Nullable>
-                               </PropertyGroup>
-                             
-                               <ItemGroup>
-                                 <PackageReference Include="FluentAssertions" />
-                                 <PackageReference Include="Microsoft.NET.Test.Sdk" />
-                               </ItemGroup>
-                             </Project>
-                             """;
+        string projectContent = """
+                                <Project Sdk="Microsoft.NET.Sdk">
+                                  <PropertyGroup>
+                                    <TargetFramework>net8.0</TargetFramework>
+                                    <ImplicitUsings>enable</ImplicitUsings>
+                                    <Nullable>enable</Nullable>
+                                  </PropertyGroup>
+                                
+                                  <ItemGroup>
+                                    <PackageReference Include="FluentAssertions" />
+                                    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+                                  </ItemGroup>
+                                </Project>
+                                """;
 
         string currentPath = _fileSystem.Path.GetFullPath(".");
-        string projectDirectoryPath = _fileSystem.Path.Combine(currentPath, @"SampleProject");
-        string fullPathToProjectFile = Path.Combine(projectDirectoryPath, "SampleProject.csproj");
-        string fullPathToFirstFile = Path.Combine(projectDirectoryPath, "File1.cs");
-        string pathToInnerDirectory = Path.Combine(projectDirectoryPath, "InnerDirectory");
-        string pathToSecondFile = Path.Combine(projectDirectoryPath, "InnerDirectory", "File2.cs");
-
-        string pathToFileInBin = Path.Combine(projectDirectoryPath, "bin", "Bin.cs");
-        string pathToFileInObj = Path.Combine(projectDirectoryPath, "obj", "Obj.cs");
-
-        _fileSystem.AddFile(@"Solution.sln", new MockFileData(solutionContent));
-        _fileSystem.AddDirectory(projectDirectoryPath);
-        _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
-        _fileSystem.AddEmptyFile(fullPathToFirstFile);
-        _fileSystem.AddEmptyFile(pathToFileInBin);
-        _fileSystem.AddEmptyFile(pathToFileInObj);
-        _fileSystem.AddDirectory(pathToInnerDirectory);
-        _fileSystem.AddEmptyFile(pathToSecondFile);
+        string fullPathToFirstFile = _fileSystem.Path.Combine(currentPath, "SampleProject", "File1.cs");
+        string pathToSecondFile = _fileSystem.Path.Combine(currentPath, "SampleProject", "InnerDirectory", "File2.cs");
 
         var expectedProjectPaths = new DotnetProjectPaths(
             _fileSystem.Path.Combine(currentPath, "SampleProject", "SampleProject.csproj"),
             new[] { fullPathToFirstFile, pathToSecondFile });
 
         var expected = new DotnetSolutionPaths(
-            _fileSystem.Path.Combine(currentPath, @"Solution.sln"),
+            _fileSystem.Path.Combine(currentPath, "Solution.sln"),
             new[] { expectedProjectPaths });
 
+        var solutionBuilder = new DotnetSolutionBuilder("Solution")
+            .AddProject(
+                new DotnetProjectBuilder("SampleProject", projectContent)
+                    .AddEmptyFile("File1.cs")
+                    .AddEmptyFile("InnerDirectory", "File2.cs")
+                    .AddEmptyFile("bin", "Bin.cs")
+                    .AddEmptyFile("obj", "Obj.cs"));
 
+        solutionBuilder.Save(_fileSystem, currentPath);
         DotnetSolutionDescriptor dotnetSolutionDescriptor = _solutionStructureParser.Parse("Solution.sln");
         DotnetSolutionPaths dotnetSolutionPaths = _sourceFileFinder.FindSourceFiles(dotnetSolutionDescriptor);
 

@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Kysect.CommonLib.DependencyInjection.Logging;
+using Kysect.DotnetSlnGenerator;
 using Kysect.DotnetSlnParser.Modifiers;
 using Kysect.DotnetSlnParser.Parsers;
 using Kysect.DotnetSlnParser.Tests.Tools;
@@ -24,62 +25,56 @@ public class DotnetSolutionModifierTests
     [Test]
     public void Save_WithoutChanges_FinishWithoutErrors()
     {
-        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", _fileSystem.Path.Combine("SampleProject", "SampleProject.csproj")));
+        string projectContent = """
+                                <Project Sdk="Microsoft.NET.Sdk">
+                                  <PropertyGroup>
+                                    <TargetFramework>net8.0</TargetFramework>
+                                    <ImplicitUsings>enable</ImplicitUsings>
+                                    <Nullable>enable</Nullable>
+                                  </PropertyGroup>
 
-        var projectContent = """
-                             <Project Sdk="Microsoft.NET.Sdk">
-                               <PropertyGroup>
-                                 <TargetFramework>net8.0</TargetFramework>
-                                 <ImplicitUsings>enable</ImplicitUsings>
-                                 <Nullable>enable</Nullable>
-                               </PropertyGroup>
-                             
-                               <ItemGroup>
-                                 <PackageReference Include="FluentAssertions" />
-                                 <PackageReference Include="Microsoft.NET.Test.Sdk" />
-                               </ItemGroup>
-                             </Project>
-                             """;
+                                  <ItemGroup>
+                                    <PackageReference Include="FluentAssertions" />
+                                    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+                                  </ItemGroup>
+                                </Project>
+                                """;
 
-        string projectDirectoryPath = @"SampleProject";
-        string fullPathToProjectFile = Path.Combine(projectDirectoryPath, "SampleProject.csproj");
+        string currentPath = _fileSystem.Path.GetFullPath(".");
 
-        _fileSystem.AddFile(@"Solution.sln", new MockFileData(solutionContent));
-        _fileSystem.AddDirectory(projectDirectoryPath);
-        _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
+        var solutionBuilder = new DotnetSolutionBuilder("Solution")
+            .AddProject(
+                new DotnetProjectBuilder("SampleProject", projectContent));
+        solutionBuilder.Save(_fileSystem, currentPath);
 
         var solutionModifier = DotnetSolutionModifier.Create("Solution.sln", _fileSystem, _logger, new SolutionFileParser(_logger));
-
         solutionModifier.Save();
     }
 
     [Test]
     public void Save_AfterChangingTargetFramework_ChangeFileContentToExpected()
     {
-        string solutionContent = SolutionItemFactory.CreateSolutionFile(("SampleProject", _fileSystem.Path.Combine("SampleProject", "SampleProject.csproj")));
-
-        var projectContent = """
-                             <Project Sdk="Microsoft.NET.Sdk">
-                               <PropertyGroup>
-                                 <TargetFramework>net8.0</TargetFramework>
-                               </PropertyGroup>
-                             </Project>
-                             """;
+        string projectContent = """
+                                <Project Sdk="Microsoft.NET.Sdk">
+                                  <PropertyGroup>
+                                    <TargetFramework>net8.0</TargetFramework>
+                                  </PropertyGroup>
+                                </Project>
+                                """;
 
         var expectedProjectContent = """
-                             <Project Sdk="Microsoft.NET.Sdk">
-                               <PropertyGroup>
-                                 <TargetFramework>net9.0</TargetFramework>
-                               </PropertyGroup>
-                             </Project>
-                             """;
+                                     <Project Sdk="Microsoft.NET.Sdk">
+                                       <PropertyGroup>
+                                         <TargetFramework>net9.0</TargetFramework>
+                                       </PropertyGroup>
+                                     </Project>
+                                     """;
 
-        string projectDirectoryPath = @"SampleProject";
-        string fullPathToProjectFile = Path.Combine(projectDirectoryPath, "SampleProject.csproj");
-
-        _fileSystem.AddFile(@"Solution.sln", new MockFileData(solutionContent));
-        _fileSystem.AddDirectory(projectDirectoryPath);
-        _fileSystem.AddFile(fullPathToProjectFile, new MockFileData(projectContent));
+        string currentPath = _fileSystem.Path.GetFullPath(".");
+        var solutionBuilder = new DotnetSolutionBuilder("Solution")
+            .AddProject(
+                new DotnetProjectBuilder("SampleProject", projectContent));
+        solutionBuilder.Save(_fileSystem, currentPath);
 
         var solutionModifier = DotnetSolutionModifier.Create("Solution.sln", _fileSystem, _logger, new SolutionFileParser(_logger));
 
@@ -88,6 +83,7 @@ public class DotnetSolutionModifierTests
 
         solutionModifier.Save();
 
+        string fullPathToProjectFile = Path.Combine(@"SampleProject", "SampleProject.csproj");
         _fileSystem.File.ReadAllText(fullPathToProjectFile).Should().Be(expectedProjectContent);
     }
 }
