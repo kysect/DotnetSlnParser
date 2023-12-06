@@ -2,7 +2,6 @@
 using Kysect.DotnetSlnParser.Models;
 using Kysect.DotnetSlnParser.Parsers;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.IO.Abstractions;
 
 namespace Kysect.DotnetSlnParser.Modifiers;

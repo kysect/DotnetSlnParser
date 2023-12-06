@@ -1,5 +1,4 @@
 ﻿using Microsoft.Language.Xml;
-using System.Collections.Generic;
 
 namespace Kysect.DotnetSlnParser.Modifiers;
 

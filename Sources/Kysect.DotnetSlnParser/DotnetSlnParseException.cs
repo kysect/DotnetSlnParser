@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Kysect.DotnetSlnParser;
+﻿namespace Kysect.DotnetSlnParser;
 
 public class DotnetSlnParseException : Exception
 {
