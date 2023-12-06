@@ -1,6 +1,7 @@
 ﻿using Kysect.CommonLib.BaseTypes.Extensions;
 using Kysect.DotnetSlnParser.Models;
 using Kysect.DotnetSlnParser.Parsers;
+using Kysect.DotnetSlnParser.Tools;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
 
@@ -22,8 +23,8 @@ public class DotnetSolutionModifier
         IFileInfo fileInfo = fileSystem.FileInfo.New(solutionPath);
         fileInfo.Directory.ThrowIfNull();
 
-        var directoryBuildPropsModifier = new DotnetPropsModifier(fileSystem.Path.Combine(fileInfo.Directory.FullName, "Directory.Build.props"), fileSystem, logger);
-        var directoryPackagePropsModifier = new DotnetPropsModifier(fileSystem.Path.Combine(fileInfo.Directory.FullName, "Directory.Package.props"), fileSystem, logger);
+        var directoryBuildPropsModifier = new DotnetPropsModifier(fileSystem.Path.Combine(fileInfo.Directory.FullName, SolutionItemNameConstants.DirectoryBuildProps), fileSystem, logger);
+        var directoryPackagePropsModifier = new DotnetPropsModifier(fileSystem.Path.Combine(fileInfo.Directory.FullName, SolutionItemNameConstants.DirectoryPackagesProps), fileSystem, logger);
 
         string solutionFileContent = fileSystem.File.ReadAllText(solutionPath);
         IReadOnlyCollection<DotnetProjectFileDescriptor> projectFileDescriptors = solutionFileParser.ParseSolutionFileContent(solutionFileContent);
