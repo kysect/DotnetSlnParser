@@ -23,6 +23,33 @@ public class DotnetSolutionModifierTests
     }
 
     [Test]
+    public void CreateModifier_ReturnFullPathToProjects()
+    {
+        string projectContent = """
+                                <Project Sdk="Microsoft.NET.Sdk">
+                                  <PropertyGroup>
+                                    <TargetFramework>net8.0</TargetFramework>
+                                  </PropertyGroup>
+                                </Project>
+                                """;
+
+        string projectName = "SampleProject";
+        string solutionSln = "Solution.sln";
+        string currentPath = _fileSystem.Path.GetFullPath("SolutionDirectory");
+        string solutionPath = _fileSystem.Path.Combine(currentPath, solutionSln);
+
+        _fileSystem.Directory.CreateDirectory(currentPath);
+
+        var solutionBuilder = new DotnetSolutionBuilder("Solution")
+            .AddProject(new DotnetProjectBuilder(projectName, projectContent));
+        solutionBuilder.Save(_fileSystem, currentPath);
+
+        var solutionModifier = DotnetSolutionModifier.Create(solutionPath, _fileSystem, _logger, new SolutionFileParser(_logger));
+
+        solutionModifier.Projects.Single().Path.Should().Be(_fileSystem.Path.Combine(currentPath, projectName, $"{projectName}.csproj"));
+    }
+
+    [Test]
     public void Save_WithoutChanges_FinishWithoutErrors()
     {
         string projectContent = """

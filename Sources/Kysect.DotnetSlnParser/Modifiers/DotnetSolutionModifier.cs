@@ -32,7 +32,8 @@ public class DotnetSolutionModifier
 
         foreach (DotnetProjectFileDescriptor projectFileDescriptor in projectFileDescriptors)
         {
-            var projectModifier = new DotnetProjectModifier(projectFileDescriptor.ProjectPath, fileSystem, logger);
+            string projectFullPath = fileSystem.Path.Combine(fileInfo.Directory.FullName, projectFileDescriptor.ProjectPath);
+            var projectModifier = new DotnetProjectModifier(projectFullPath, fileSystem, logger);
             bool supportModification = projectModifier.SupportModification();
             if (!supportModification)
                 logger.LogWarning("Project {Path} use legacy csproj format and will be skipped.", projectModifier.Path);
