@@ -6,6 +6,6 @@
 
     <ItemGroup>
         <PackageReference Include="Kysect.CommonLib" />
-        <PackageReference Include="System.IO.Abstractions" />
+        <PackageReference Include="TestableIO.System.IO.Abstractions" />
     </ItemGroup>
 </Project>
